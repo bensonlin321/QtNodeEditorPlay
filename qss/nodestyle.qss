@@ -1,0 +1,7 @@
+QDMNodeContentWidget {
+    background: transparent;
+}
+
+QLabel { 
+    color: #FFFF03;
+}

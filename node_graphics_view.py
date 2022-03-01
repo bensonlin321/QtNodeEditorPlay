@@ -7,12 +7,12 @@ class QDMGraphicsView(QGraphicsView):
         super().__init__(parent)
         self.grScene = grScene
         self.initUI()
-        self.setScene(self.grScene)
         self.zoomInFactor = 1.25
         self.zoomClamp = False
         self.zoom = 10
         self.zoomStep = 1
         self.zoomRange = [0, 10] # min, max
+        self.setScene(self.grScene)
 
     def initUI(self):
         self.setRenderHints(QPainter.Antialiasing |
