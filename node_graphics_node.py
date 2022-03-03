@@ -15,7 +15,7 @@ class QDMGraphicsNode(QGraphicsItem):
         self.height = 240
         self.edge_size = 10.0 # pixels
         self.title_height = 24.0
-        self._padding = 50.0
+        self._padding = 20.0
 
         self._pen_default = QPen(QColor("#7F000000"))
         self._pen_selected = QPen(QColor("#FFFFA637"))
@@ -28,20 +28,23 @@ class QDMGraphicsNode(QGraphicsItem):
         self.title = self.node.title
 
         # init sockets
-
+        self.initSockets()
 
         # init content
         self.initContent()
 
-
         self.initUI()
+
+    def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event)
+        self.node.updateConnectedEdges()
 
     def boundingRect(self):
         return QRectF(
             0,
             0,
-            2 * self.edge_size + self.width,
-            2 * self.edge_size + self.height
+            self.width,
+            self.height
             ).normalized()
 
     def initUI(self):
@@ -64,6 +67,9 @@ class QDMGraphicsNode(QGraphicsItem):
                                  self.width  - 2 * self.edge_size,
                                  self.height - 2 * self.edge_size - self.title_height)
         self.grContent.setWidget(self.content)
+
+    def initSockets(self):
+        pass
 
     @property
     def title(self): return self._title

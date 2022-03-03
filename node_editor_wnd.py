@@ -5,6 +5,8 @@ from node_graphics_scene import QDMGraphicsScene
 from node_graphics_view import QDMGraphicsView
 from node_scene import Scene
 from node_node import Node
+from node_socket import Socket
+from node_edge import *
 
 class NodeEditorWnd(QWidget):
 
@@ -27,7 +29,7 @@ class NodeEditorWnd(QWidget):
         self.scene = Scene()
         #self.grScene = QDMGraphicsScene(self.scene)
         
-        node = Node(self.scene, "New Node Title")
+        self.addNodes()
 
         # create graphics view
         self.view = QDMGraphicsView(self.scene.grScene, self)
@@ -40,7 +42,16 @@ class NodeEditorWnd(QWidget):
 
         self.show()
 
+    def addNodes(self):
+        node1 = Node(self.scene, "Adam", inputs=[0,2,3], outputs=[1])
+        node1.setPos(-350, -250)
+        node2 = Node(self.scene, "Benson", inputs=[0,4,5], outputs=[1])
+        node2.setPos(150, -250)
+        node3 = Node(self.scene, "New Node 3", inputs=[0,0,1], outputs=[1])
+        node3.setPos(0, 0)
 
+        edge1 = Edge(self.scene, node1.outputs[0], node2.inputs[0], edge_type=EDGE_TYPE_BEZIER)
+        edge2 = Edge(self.scene, node2.outputs[0], node3.inputs[0], edge_type=EDGE_TYPE_BEZIER)
 
     def addDebugContent(self, grScene):
         greenBrush = QBrush(Qt.green)
