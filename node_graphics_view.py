@@ -37,6 +37,8 @@ class QDMGraphicsView(QGraphicsView):
 
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
 
+        self.setDragMode(QGraphicsView.RubberBandDrag)
+
     # mouse event
 
     def mousePressEvent(self, event):
@@ -207,6 +209,30 @@ class QDMGraphicsView(QGraphicsView):
                 return True
         return False
 
+    def isShiftPressed(self, event, item):
+        if hasattr(item, "node") or isinstance(item, QDMGraphicsEdge) or item is None:
+            if event.modifiers() & Qt.ShiftModifier:
+                print("LMB + Shift on", item)
+                event.ignore()
+                # event.modifiers(): Qt.ShiftModifier, Qt.ControlModifier, Qt.AltModifier
+                fakeEvent = QMouseEvent(QEvent.MouseButtonPress, event.localPos(), event.screenPos(),
+                                        Qt.LeftButton, event.buttons() | Qt.LeftButton,
+                                        event.modifiers() | Qt.ControlModifier)
+                super().mousePressEvent(fakeEvent)
+                return True
+
+    def isShiftReleased(self, event, item):
+        if hasattr(item, "node") or isinstance(item, QDMGraphicsEdge):
+            if event.modifiers() & Qt.ShiftModifier:
+                print("LMB Release + Shift on", item)
+                event.ignore()
+                fakeEvent = QMouseEvent(event.type(), event.localPos(), event.screenPos(),
+                                        Qt.LeftButton, Qt.NoButton,
+                                        event.modifiers() | Qt.ControlModifier)
+                super().mouseReleaseEvent(fakeEvent)
+                return True
+
+
     def checkSocketModeForLeftMPress(self, event):
         # get item which we clicked on
         item = self.getItemAtClick(event)
@@ -215,6 +241,8 @@ class QDMGraphicsView(QGraphicsView):
         self.last_lmb_click_scene_pos = self.mapToScene(event.pos())
 
         # logic
+        if self.isShiftPressed(event, item): return True
+
         if self.edgeDragStart(item): return True
 
         if self.mode == MODE_EDGE_DRAG:
@@ -225,6 +253,8 @@ class QDMGraphicsView(QGraphicsView):
     def checkSocketModeForRightMPress(self, event):
         # get item which we clicked on
         item = self.getItemAtClick(event)
+
+        if self.isShiftReleased(event, item): return True
 
         if self.mode == MODE_EDGE_DRAG:
             if self.distanceBetweenClickAndReleaseIsOff(event):

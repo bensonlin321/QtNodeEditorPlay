@@ -5,3 +5,7 @@ QDMNodeContentWidget {
 QLabel { 
     color: #FFFF03;
 }
+
+QGraphicsView {
+    selection-background-color: rgb(255, 255, 255);
+}
