@@ -33,6 +33,7 @@ class NodeEditorWnd(QWidget):
 
         # create graphics view
         self.view = QDMGraphicsView(self.scene.grScene, self)
+        self.scene.setView(self.view)
         self.layout.addWidget(self.view)
 
         self.setWindowTitle("Node Editor")

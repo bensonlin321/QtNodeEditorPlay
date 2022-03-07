@@ -42,7 +42,7 @@ class Edge():
 
         self.grEdge.update()
 
-    def remove_from_socket(self):
+    def remove_from_sockets(self):
         if self.start_socket is not None:
             self.start_socket.edge = None
         if self.end_socket is not None:
@@ -51,7 +51,10 @@ class Edge():
         self.start_socket = None
 
     def remove(self):
-        self.remove_from_socket()
+        self.remove_from_sockets()
         self.scene.grScene.removeItem(self.grEdge)
         self.grEdge = None
-        self.scene.removeEdge(self)
+        try:
+            self.scene.removeEdge(self)
+        except Exception as e:
+            print("exception:", e)

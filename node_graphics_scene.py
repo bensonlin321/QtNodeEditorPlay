@@ -8,7 +8,6 @@ class QDMGraphicsScene(QGraphicsScene):
         super().__init__(parent)
         self.configuration(scene)
         
-
     def configuration(self, scene):
         #settings
         self.scene = scene
@@ -66,6 +65,8 @@ class QDMGraphicsScene(QGraphicsScene):
         painter.setPen(self._pen_dark)
         painter.drawLines(*lines_dark)
 
+    def setView(self, view):
+        self.view = view
 
 
 
