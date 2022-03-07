@@ -4,10 +4,12 @@ from PyQt5.QtGui import *
 from node_graphics_socket import *
 from node_graphics_edge import *
 from node_edge import *
+from node_graphics_cutline import QDMCutLine
 import inspect
 
 MODE_NOOP = 1
 MODE_EDGE_DRAG = 2
+MODE_EDGE_CUT = 3
 
 EDGE_DRAG_START_THRESHOLD = 10 # pixels
 
@@ -25,6 +27,10 @@ class QDMGraphicsView(QGraphicsView):
 
         self.mode = MODE_NOOP
         self.editingFlag = False
+
+        # cutline
+        self.cutline = QDMCutLine()
+        self.grScene.addItem(self.cutline)
 
     def initUI(self):
         self.setRenderHints(QPainter.Antialiasing |
@@ -86,7 +92,7 @@ class QDMGraphicsView(QGraphicsView):
 
 
     def leftMouseButtonRelease(self, event):
-        check = self.checkSocketModeForRightMPress(event)
+        check = self.checkSocketModeForLeftMRelease(event)
         if not check:
             super().mouseReleaseEvent(event)
 
@@ -119,6 +125,13 @@ class QDMGraphicsView(QGraphicsView):
             pos = self.mapToScene(event.pos())
             self.dragEdge.grEdge.setDestination(pos.x(), pos.y())
             self.dragEdge.grEdge.update()
+
+        # draw dash line
+        elif self.mode == MODE_EDGE_CUT:
+            # check position
+            pos = self.mapToScene(event.pos())
+            self.cutline.line_points.append(pos)
+            self.cutline.update()
 
         super().mouseMoveEvent(event)
 
@@ -269,9 +282,19 @@ class QDMGraphicsView(QGraphicsView):
         if self.mode == MODE_EDGE_DRAG:
             return self.edgeDragEnd(item)
 
+        # cut edge
+        if item is None:
+            if event.modifiers() == Qt.ControlModifier:
+                self.mode = MODE_EDGE_CUT
+                fakeEvent = QMouseEvent(QEvent.MouseButtonRelease, event.localPos(), event.screenPos(),
+                                        Qt.LeftButton, Qt.NoButton, event.modifiers())
+                super().mouseReleaseEvent(fakeEvent)
+                QApplication.setOverrideCursor(Qt.CrossCursor)
+                return True
+
         return False
 
-    def checkSocketModeForRightMPress(self, event):
+    def checkSocketModeForLeftMRelease(self, event):
         # get item which we clicked on
         item = self.getItemAtClick(event)
 
@@ -281,4 +304,23 @@ class QDMGraphicsView(QGraphicsView):
             if self.distanceBetweenClickAndReleaseIsOff(event):
                 return self.edgeDragEnd(item)
 
+        if self.mode == MODE_EDGE_CUT:
+            # check all the edges in the scene
+            self.cutIntersectingEdges()
+            self.cutline.line_points = []
+            self.cutline.update()
+            QApplication.setOverrideCursor(Qt.ArrowCursor)
+            self.mode = MODE_NOOP
+            return True
+
         return False
+
+    def cutIntersectingEdges(self):
+        for ix in range(len(self.cutline.line_points) - 1):
+            p1 = self.cutline.line_points[ix]
+            p2 = self.cutline.line_points[ix + 1]
+
+            # check each edge in scene
+            for edge in self.grScene.scene.edges:
+                if edge.grEdge.intersectsWith(p1, p2):
+                    edge.remove()

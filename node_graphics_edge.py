@@ -37,7 +37,8 @@ class QDMGraphicsEdge(QGraphicsPathItem):
         self.posDestination = [x, y]
 
     def paint(self, painter, QStyleOptionGraphicsItem, widget=None):
-        self.updatePath()
+        #self.updatePath()
+        self.setPath(self.calcPath())
 
         if self.edge.end_socket is None:
             painter.setPen(self._pen_dragging)
@@ -46,22 +47,28 @@ class QDMGraphicsEdge(QGraphicsPathItem):
         painter.setBrush(Qt.NoBrush)
         painter.drawPath(self.path())
 
+    def intersectsWith(self, p1, p2):
+        cutpath = QPainterPath(p1)
+        cutpath.lineTo(p2)
+        path = self.calcPath()
+        return cutpath.intersects(path)
+
     # abstract
-    def updatePath(self):
+    def calcPath(self):
         """ Will handle drawing QPainterPath from Point A to B """
         raise NotImplemented("This method has to be overriden in a child class")
 
 
 class QDMGraphicsEdgeDirect(QDMGraphicsEdge):
-    def updatePath(self):
+    def calcPath(self):
         path = QPainterPath(QPointF(self.posSource[0], self.posSource[1]))
         path.lineTo(self.posDestination[0], self.posDestination[1])
-        self.setPath(path)
-        pass
+        #self.setPath(path)
+        return path
 
 class QDMGraphicsEdgeBezier(QDMGraphicsEdge):
     # curve
-    def updatePath(self):
+    def calcPath(self):
         s = self.posSource
         d = self.posDestination
         dist = (d[0] - s[0]) * 0.5
@@ -91,6 +98,6 @@ class QDMGraphicsEdgeBezier(QDMGraphicsEdge):
         path = QPainterPath(QPointF(self.posSource[0], self.posSource[1]))
         #path.cubicTo(s[0]+dist, s[1], d[0]-dist, d[1], self.posDestination[0], self.posDestination[1]) # add a cubic Bezier curve
         path.cubicTo(s[0]+cpx_s, s[1]+cpy_s, d[0]+cpx_d, d[1]+cpy_d, self.posDestination[0], self.posDestination[1]) # add a cubic Bezier curve
-        self.setPath(path)
-
+        #self.setPath(path)
+        return path
 
